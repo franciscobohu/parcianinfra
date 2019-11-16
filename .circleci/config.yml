@@ -54,9 +54,9 @@ jobs:
           fingerprints:
             - "c3:25:f4:dc:02:76:c9:fb:e7:bd:e1:b1:59:d7:24:35"
       - run: yarn run build
-      - run : ssh -o StrictHostKeyChecking=no ubuntu@34.200.229.253 'sudo rm -r /var/www/html/*'
-      - run : ssh -o StrictHostKeyChecking=no ubuntu@34.200.229.253 'sudo chmod 777 /var/www/html'
-      - run: scp -o StrictHostKeyChecking=no -r ./build/* ubuntu@34.200.229.253:/var/www/html
+      - run : ssh -o StrictHostKeyChecking=no santiagoti2019@35.192.25.179 'sudo rm -r /var/www/html/*'
+      - run : ssh -o StrictHostKeyChecking=no santiagoti2019@35.192.25.179 'sudo chmod 777 /var/www/html'
+      - run: scp -o StrictHostKeyChecking=no -r ./build/* santiagoti2019@35.192.25.179:/var/www/html
       - save_cache:
           paths:
             - node_modules
@@ -77,15 +77,19 @@ jobs:
           fingerprints:
             - "c3:25:f4:dc:02:76:c9:fb:e7:bd:e1:b1:59:d7:24:35"
       - run: yarn run build
-      - run : ssh -o StrictHostKeyChecking=no ubuntu@3.234.182.88 'sudo mkdir /home/ubuntu/build'
-      - run : ssh -o StrictHostKeyChecking=no ubuntu@3.234.182.88 'sudo chmod 777 /home/ubuntu/build'
-      - run : scp -o StrictHostKeyChecking=no -r ./build/* ubuntu@3.234.182.88:/home/ubuntu/build
-      - run : ssh -o StrictHostKeyChecking=no ubuntu@3.234.182.88 'scp -i Mauro.pem -r /home/ubuntu/build/* ubuntu@10.0.3.52:/var/www/html'
-      - run : ssh -o StrictHostKeyChecking=no ubuntu@3.234.182.88 'sudo rm -R build/' 
-      - run : ssh  -o StrictHostKeyChecking=no ubuntu@3.234.182.88 'ssh -i Mauro.pem ubuntu@10.0.1.45 'sudo mount -t nfs 10.0.3.52:/var/www/html /var/www/html''
-      - run : ssh  -o StrictHostKeyChecking=no ubuntu@3.234.182.88 'ssh -i Mauro.pem ubuntu@10.0.2.148 'sudo mount -t nfs 10.0.3.52:/var/www/html /var/www/html''
-      - run : ssh -o StrictHostKeyChecking=no ubuntu@3.234.182.88 'ssh -i Mauro.pem ubuntu@10.0.1.45 'sudo service apache2 restart''
-      - run : ssh -o StrictHostKeyChecking=no ubuntu@3.234.182.88 'ssh -i Mauro.pem ubuntu@10.0.2.148 'sudo service apache2 restart''
+      - run : ssh -o StrictHostKeyChecking=no santiagoti2019@35.192.63.199 'sudo mkdir /home/ubuntu/build'
+      - run : ssh -o StrictHostKeyChecking=no santiagoti2019@35.192.63.199 'sudo chmod 777 /home/ubuntu/build'
+      - run : scp -o StrictHostKeyChecking=no -r ./build/* santiagoti2019@35.192.63.199:/home/ubuntu/build
+      - run : ssh -o StrictHostKeyChecking=no santiagoti2019@35.192.63.1998 'scp -i Mauro.pem -r /home/ubuntu/build/* ubuntu@10.0.3.52:/var/www/html'
+      - run : ssh -o StrictHostKeyChecking=no santiagoti2019@35.192.63.199 'sudo rm -R build/'
+
+
+      - run : ssh -o StrictHostKeyChecking=no santiagoti2019@34.66.153.121 'sudo mkdir /home/ubuntu/build'
+      - run : ssh -o StrictHostKeyChecking=no santiagoti2019@35.34.66.153.121 'sudo chmod 777 /home/ubuntu/build'
+      - run : scp -o StrictHostKeyChecking=no -r ./build/* santiagoti2019@35.34.66.153.121:/home/ubuntu/build
+      - run : ssh -o StrictHostKeyChecking=no santiagoti2019@34.66.153.121 'scp -i Mauro.pem -r /home/ubuntu/build/* ubuntu@10.0.3.52:/var/www/html'
+      - run : ssh -o StrictHostKeyChecking=no santiagoti2019@34.66.153.121 'sudo rm -R build/' 
+      
       - save_cache:
           paths:
             - node_modules
