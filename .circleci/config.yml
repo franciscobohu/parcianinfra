@@ -1,0 +1,133 @@
+# Javascript Node CircleCI 2.0 configuration file
+#
+# Check https://circleci.com/docs/2.0/language-javascript/ for more details
+#
+version: 2
+jobs:
+  build:
+    docker:
+      - image: circleci/node:8.10
+    working_directory: ~/repo
+
+    steps:
+      - checkout
+      - restore_cache:
+          keys:
+            - v1-dependencies-{{ checksum "package.json" }}
+            # fallback to using the latest cache if no exact match is found
+            - v1-dependencies-
+
+      - run: yarn install
+
+      - save_cache:
+          paths:
+            - node_modules
+          key: v1-dependencies-{{ checksum "package.json" }}
+  test:
+    docker:
+      - image: circleci/node:8.10
+
+    working_directory: ~/repo
+
+    steps:
+      - checkout
+      - restore_cache:
+          keys:
+            - v1-dependencies-{{ checksum "package.json" }}
+            # fallback to using the latest cache if no exact match is found
+            - v1-dependencies-
+      - run: yarn run test
+  deployCapaDesarrollo:
+    docker:
+      - image: circleci/node:8.10
+    working_directory: ~/repo
+
+    steps:
+      - checkout
+
+      # Download and cache dependencies
+      - restore_cache:
+          keys:
+            - v1-dependencies-{{ checksum "package.json" }}
+            - v1-dependencies-
+      - add_ssh_keys:
+          fingerprints:
+            - "c3:25:f4:dc:02:76:c9:fb:e7:bd:e1:b1:59:d7:24:35"
+      - run: yarn run build
+      - run : ssh -o StrictHostKeyChecking=no ubuntu@34.200.229.253 'sudo rm -r /var/www/html/*'
+      - run : ssh -o StrictHostKeyChecking=no ubuntu@34.200.229.253 'sudo chmod 777 /var/www/html'
+      - run: scp -o StrictHostKeyChecking=no -r ./build/* ubuntu@34.200.229.253:/var/www/html
+      - save_cache:
+          paths:
+            - node_modules
+          key: v1-dependencies-{{ checksum "package.json" }}
+  deployCapaProduccion:
+    docker:
+      - image: circleci/node:8.10
+    working_directory: ~/repo
+
+    steps:
+      - checkout
+      # Download and cache dependencies
+      - restore_cache:
+          keys:
+            - v1-dependencies-{{ checksum "package.json" }}
+            - v1-dependencies-
+      - add_ssh_keys:
+          fingerprints:
+            - "c3:25:f4:dc:02:76:c9:fb:e7:bd:e1:b1:59:d7:24:35"
+      - run: yarn run build
+      - run : ssh -o StrictHostKeyChecking=no ubuntu@3.234.182.88 'sudo mkdir /home/ubuntu/build'
+      - run : ssh -o StrictHostKeyChecking=no ubuntu@3.234.182.88 'sudo chmod 777 /home/ubuntu/build'
+      - run : scp -o StrictHostKeyChecking=no -r ./build/* ubuntu@3.234.182.88:/home/ubuntu/build
+      - run : ssh -o StrictHostKeyChecking=no ubuntu@3.234.182.88 'scp -i Mauro.pem -r /home/ubuntu/build/* ubuntu@10.0.3.52:/var/www/html'
+      - run : ssh -o StrictHostKeyChecking=no ubuntu@3.234.182.88 'sudo rm -R build/' 
+      - run : ssh  -o StrictHostKeyChecking=no ubuntu@3.234.182.88 'ssh -i Mauro.pem ubuntu@10.0.1.45 'sudo mount -t nfs 10.0.3.52:/var/www/html /var/www/html''
+      - run : ssh  -o StrictHostKeyChecking=no ubuntu@3.234.182.88 'ssh -i Mauro.pem ubuntu@10.0.2.148 'sudo mount -t nfs 10.0.3.52:/var/www/html /var/www/html''
+      - run : ssh -o StrictHostKeyChecking=no ubuntu@3.234.182.88 'ssh -i Mauro.pem ubuntu@10.0.1.45 'sudo service apache2 restart''
+      - run : ssh -o StrictHostKeyChecking=no ubuntu@3.234.182.88 'ssh -i Mauro.pem ubuntu@10.0.2.148 'sudo service apache2 restart''
+      - save_cache:
+          paths:
+            - node_modules
+          key: v1-dependencies-{{ checksum "package.json" }}
+
+ 
+    
+
+
+workflows:
+  version: 2
+  normal_run:
+    jobs:
+      - build: 
+          filters:
+            branches:
+              only:
+                - master
+      - test:
+          requires:
+            - build
+          filters:
+            branches:
+              only:
+                - master
+      - deployCapaDesarrollo:
+          requires:
+            - build
+            - test
+          filters:
+            branches:
+              only:
+                - master
+      - request-testing:
+          type: approval
+          requires:
+            - deployCapaDesarrollo
+            - test
+      - deployCapaProduccion:
+          requires:
+            - request-testing
+          filters:
+            branches:
+              only:
+                - master
